@@ -1,7 +1,7 @@
 name: Build USUKernel A14 with KernelSU
 
 on:
-  release:
+  push:
     types: [published]
     tags:
       - 'v*'
