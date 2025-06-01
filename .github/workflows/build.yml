@@ -59,7 +59,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           submodules: true
-          repository: https://github.com/osm0sis/AnyKernel3.git
+          repository: mads2570/Anykernel3
           ref: master
           path: anykernel
 
