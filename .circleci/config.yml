@@ -1,11 +1,8 @@
-# This config was automatically generated from your source code
-# Stacks detected: cicd:github-actions:.github/workflows,deps:python:Documentation/sphinx,file:setup.py:tools/perf/util
 version: 2.1
 orbs:
   python: circleci/python@2
 jobs:
   test-python:
-    # Install dependencies and run tests
     docker:
       - image: cimg/python:3.8-node
     working_directory: ~/project/Documentation/sphinx
@@ -20,7 +17,6 @@ jobs:
       - store_test_results:
           path: junit.xml
   build-package:
-    # build python package
     docker:
       - image: cimg/python:3.8-node
     steps:
@@ -34,11 +30,9 @@ jobs:
           path: dist
           destination: ~/artifacts
   deploy:
-    # This is an example deploy job, not actually used by the workflow
     docker:
       - image: cimg/base:stable
     steps:
-      # Replace this with steps to deploy to users
       - run:
           name: deploy
           command: '#e.g. ./deploy.sh'
