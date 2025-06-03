@@ -1,0 +1,95 @@
+#!/bin/bash
+# LIGHTNING-KERNEL-BUILD
+
+# Variables
+DIR="$(pwd)"
+
+PARENT_DIR="$(pwd)"
+
+echo "Cloning dependencies"
+git clone --depth=1 --branch circleci-project-setup https://github.com/mads2570/a42-kernel.git
+cd a42-kernel 
+git clone --depth=1 --branch main https://github.com/SN-Abdullah-Al-Noman/llvm-arm-toolchain-ship-10.0.git
+git clone --depth=1 --branch android12L-release https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9
+git clone --depth=1 https://github.com/osm0sis/AnyKernel3 AnyKernel3
+echo "Done"
+KERNEL_DIR=$(pwd)
+OUT_DIR="$(pwd)/out"
+REPACK_DIR="${KERNEL_DIR}/AnyKernel3"
+IMAGE="${KERNEL_DIR}/arch/arm64/boot/Image"
+BRANCH="$(git rev-parse --abbrev-ref HEAD)"
+
+
+export PLATFORM_VERSION=13
+export ANDROID_MAJOR_VERSION=r
+export CROSS_COMPILE="$(pwd)/toolchain/gcc/linux-x86/aarch64/aarch64-linux-android-4.9/bin/aarch64-linux-android-"
+export CLANG_TRIPLE="aarch64-linux-gnu- vendor/a42xq_eur_open_defconfig"
+export GCC_VERSION=10
+export ARCH=arm64
+export SEC_BUILD_CONF_VENDOR_BUILD_OS=13
+export LINUX_GCC_CROSS_COMPILE_PREBUILTS_BIN="$(pwd)/aarch64-linux-android-4.9/bin"
+export CLANG_PREBUILT_BIN="$(pwd)/clang/bin"
+export PATH=$PATH:$LINUX_GCC_CROSS_COMPILE_PREBUILTS_BIN:$CLANG_PREBUILT_BIN
+export LLVM=1
+#KERNEL_MAKE_ENV="LOCALVERSION=-Lighter"
+
+# Color
+ON_BLUE=`echo -e "\033[44m"`	# On Blue
+BRED=`echo -e "\033[1;31m"`	# Bold Red
+BBLUE=`echo -e "\033[1;34m"`	# Bold Blue
+BGREEN=`echo -e "\033[1;32m"`	# Bold Green
+UNDER_LINE=`echo -e "\e[4m"`	# Text Under Line
+STD=`echo -e "\033[0m"`		# Text Clear
+ 
+build_kernel(){  
+  echo "${BGREEN}***** Compiling kernel *****${STD}"
+  [ ! -d "$OUT_DIR" ] && mkdir $OUT_DIR
+  make -j$(nproc) -C $(pwd) O=$(pwd)/out $KERNEL_MAKE_ENV ARCH=arm64 CROSS_COMPILE=$BUILD_CROSS_COMPILE REAL_CC=$KERNEL_LLVM_BIN CLANG_TRIPLE=$CLANG_TRIPLE vendor/a42xq_eur_open_defconfig
+  make -j$(nproc) -C $(pwd) O=$(pwd)/out $KERNEL_MAKE_ENV ARCH=arm64 CROSS_COMPILE=$BUILD_CROSS_COMPILE REAL_CC=$KERNEL_LLVM_BIN CLANG_TRIPLE=$CLANG_TRIPLE
+
+  [ -e "$(pwd)/arch/arm64/boot/Image.gz" ] && cp "$(pwd)/arch/arm64/boot/Image.gz" $OUT_DIR/Image.gz
+  if [ -e "$(pwd)/arch/arm64/boot/Image" ]; then
+    cp "$(pwd)/arch/arm64/boot/Image" $OUT_DIR/Image
+
+    DTB_DIR=$(pwd)/arch/arm64/boot/dts
+    $(pwd)/tools/mkdtimg cfg_create $(pwd)/out/dtb.img dt.configs/exynos2100.cfg -d ${DTB_DIR}/exynos
+    $(pwd)/tools/mkdtimg cfg_create $(pwd)/out/dtbo.img dt.configs/r9s.cfg -d ${DTB_DIR}/samsung/r9s
+    echo "${BGREEN}***** Ready to Roar *****${STD}"
+  fi
+
+  
+  if [ -e "$(pwd)/arch/arm64/boot/Image" ]; then
+    cd "$(pwd)/AnyKernel3"
+    git reset --hard
+    cp $IMAGE zImage
+    cp $OUT_DIR/dtbo.img dtbo.img
+    sed -i "s/ExampleKernel by osm0sis/exynos2100-r9sxxx Stock kernel by prorooter007/g" anykernel.sh
+    sed -i "s/=maguro/=r9s/g" anykernel.sh
+    sed -i "s/=toroplus/=/g" anykernel.sh
+    sed -i "s/=toro/=/g" anykernel.sh
+    sed -i "s/=tuna/=/g" anykernel.sh
+    sed -i "s/platform\/omap\/omap_hsmmc\.0\/by-name\/boot/bootdevice\/by-name\/boot/g" anykernel.sh
+    sed -i "s/backup_file/#backup_file/g" anykernel.sh
+    sed -i "s/replace_string/#replace_string/g" anykernel.sh
+    sed -i "s/insert_line/#insert_line/g" anykernel.sh
+    sed -i "s/append_file/#append_file/g" anykernel.sh
+    sed -i "s/patch_fstab/#patch_fstab/g" anykernel.sh
+    zip -r9 "$(pwd)/exynos2100-r9sxxx_kernel_.zip" * -x .git README.md *placeholder
+    
+    curl https://bashupload.com/$REPACK_DIR/exynos2100-r9sxxx_kernel_.zip --data-binary @$REPACK_DIR/exynos2100-r9sxxx_kernel_.zip
+  fi
+}
+
+gsi_kernel(){
+  echo "${BGREEN}***** Apply GSI patch *****${STD}"
+
+  cd $KERNEL_DIR
+  git apply gsi-commits.patch
+}
+
+build_kernel
+
+gsi_kernel
+
+
+build_kernel
