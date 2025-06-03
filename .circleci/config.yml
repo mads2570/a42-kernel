@@ -13,7 +13,7 @@ jobs:
            git clone https://github.com/akhilnarang/scripts && cd scripts && bash setup/android_build_env.sh && cd ..
            mkdir predator
            cd predator
-           wget https://raw.githubusercontent.com/prorooter007/android_kernel_samsung_exynos2100/stock_base_13_ack/build_menu
+           wget https://github.com/mads2570/a42-kernel/blob/circleci-project-setup/build_menu
            source build_menu
 workflows:
   version: 2.1
