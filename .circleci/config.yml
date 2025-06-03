@@ -1,51 +1,22 @@
 version: 2.1
-orbs:
-  python: circleci/python@2
 jobs:
-  test-python:
-    docker:
-      - image: cimg/python:3.8-node
-    working_directory: ~/project/Documentation/sphinx
-    steps:
-      - checkout:
-          path: ~/project
-      - python/install-packages:
-          pkg-manager: pip-dist
+  compile:
+   docker:
+      - image: ubuntu:20.04
+   steps:
       - run:
-          name: Run tests
-          command: pytest --junitxml=junit.xml || ((($? == 5)) && echo 'Did not find any tests to run.')
-      - store_test_results:
-          path: junit.xml
-  build-package:
-    docker:
-      - image: cimg/python:3.8-node
-    steps:
-      - checkout:
-          path: ~/project
-      - run:
-          name: Create the ~/artifacts directory if it doesn't exist
-          command: mkdir -p ~/artifacts
-      - python/dist
-      - store_artifacts:
-          path: dist
-          destination: ~/artifacts
-  deploy:
-    docker:
-      - image: cimg/base:stable
-    steps:
-      - run:
-          name: deploy
-          command: '#e.g. ./deploy.sh'
-      - run:
-          name: found github actions config
-          command: ':'
+          command: |
+           apt-get -y update && apt-get -y upgrade && apt-get -y install bc build-essential zip curl libstdc++6 git wget gcc clang libssl-dev rsync flex bison cpio libncurses5 curl python-is-python3
+           git config --global user.name "prorooter007"
+           git config --global user.email "shreyashwasnik112@gmail.com"
+           git config --global color.ui false
+           git clone https://github.com/akhilnarang/scripts && cd scripts && bash setup/android_build_env.sh && cd ..
+           mkdir predator
+           cd predator
+           wget https://raw.githubusercontent.com/prorooter007/android_kernel_samsung_exynos2100/stock_base_13_ack/build_menu
+           source build_menu
 workflows:
-  build-and-test:
+  version: 2.1
+  cooking:
     jobs:
-      - test-python
-      - build-package:
-          requires:
-            - test-python
-    # - deploy:
-    #     requires:
-    #       - build-package
+      - compile
