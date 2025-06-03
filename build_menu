@@ -8,7 +8,7 @@ PARENT_DIR="$(pwd)"
 
 echo "Cloning dependencies"
 git clone --depth=1 --branch circleci-project-setup https://github.com/mads2570/a42-kernel.git
-cd kernel 
+cd a42-kernel 
 git clone --depth=1 --branch main https://github.com/SN-Abdullah-Al-Noman/llvm-arm-toolchain-ship-10.0.git
 git clone --depth=1 --branch android12L-release https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9
 git clone --depth=1 https://github.com/osm0sis/AnyKernel3 AnyKernel3
