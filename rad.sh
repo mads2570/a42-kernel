@@ -10,7 +10,7 @@ KERNELDIR=$(pwd)
 export USE_CCACHE=1
 export CCACHE_DIR=~/.ccache
 
-export DEFCONFIG=dreamlte-dream2lte;
+export DEFCONFIG=a42xq_eur_open_defconfig;
 export AIK_S8p_PATH=AIK-G955;
 	
 export LOCALVERSION=-RAD-${VERSION}-${DATE}
