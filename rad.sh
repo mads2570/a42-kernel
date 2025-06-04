@@ -12,7 +12,7 @@ export CCACHE_DIR=~/.ccache
 export DEFCONFIG=a42xq_eur_open;
 export AIK_a42xq_PATH=AIK-a42xq;
 =======
-export DEFCONFIG=a42xq_eur_open_defconfig;
+export DEFCONFIG=a42xq_eur_open_;
 export AIK_S8p_PATH=AIK-a42xq;
 	
 export LOCALVERSION=-RAD-${VERSION}-${DATE}
