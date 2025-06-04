@@ -4,6 +4,16 @@ echo "------------------------------------------------------"
 echo "---             RAD-KERNEL-BUILD-SCRIPT            ---"
 echo "------------------------------------------------------"
 	
+JOBS=$(nproc)
+KERNELDIR=$(pwd)
+export USE_CCACHE=1
+export CCACHE_DIR=~/.ccache
+
+export VERSION=10
+export CLEAN=yes
+export DEVICE=a42xq
+
+
 read -p "Clean source (y/n) > " yn
 if [ "$yn" = "Y" -o "$yn" = "y" ]; then
      echo "Cleaning Source!"
