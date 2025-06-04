@@ -19,7 +19,7 @@ export LOCALVERSION=-RAD-${VERSION}-${DATE}
 
 export ARCH=arm64
 export PATH="$(pwd)/clang/bin/:$(pwd)/toolchain/bin:${PATH}"
-export CROSS_COMPILE=$(pwd)/toolchain/bin/aarch64-linux-gnu- vendor/a42xq_eur_open_defconfig
+export CROSS_COMPILE=$(pwd)/toolchain/bin/aarch64-linux-gnu-
 export :CLANG_TRIPLE=aarch64-linux-gnu- vendor/a42xq_eur_open_defconfig
 
 if [ "${CLEAN}" == "yes" ]; then
