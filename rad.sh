@@ -13,8 +13,7 @@ export DEFCONFIG=a42xq_eur_open;
 export AIK_a42xq_PATH=AIK-a42xq;
 =======
 export DEFCONFIG=a42xq_eur_open_defconfig;
-export AIK_S8p_PATH=AIK-G955;
->>>>>>> 102475fe404fef616bf0091f250adbff28980f98
+export AIK_S8p_PATH=AIK-a42xq;
 	
 export LOCALVERSION=-RAD-${VERSION}-${DATE}
 
@@ -38,7 +37,7 @@ echo "-----------------------------------------"
 echo "------------------------------------------------------"
 echo "---                Building Kernel!                ---"
 echo "------------------------------------------------------"
-make O=out exynoa42xq895-${DEFCONFIG}_defconfig && script -q ~/Compile.log -c "
+make O=out KERNEL_MAKE_ENV-${DEFCONFIG}_defconfig && script -q ~/Compile.log -c "
 make O=out CC=clang -j${JOBS}"
 
 if [ ! -e ${KERNELDIR}/RAD/logs ]; then
