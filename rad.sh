@@ -9,8 +9,6 @@ JOBS=$(nproc)
 KERNELDIR=$(pwd)
 export USE_CCACHE=1
 export CCACHE_DIR=~/.ccache
-
-<<<<<<< HEAD
 export DEFCONFIG=a42xq_eur_open;
 export AIK_a42xq_PATH=AIK-a42xq;
 =======
