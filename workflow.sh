@@ -15,13 +15,8 @@ export DEVICE=a42xq
 
 
 read -p "Clean source (y/n) > " yn
-if [ "$yn" = "Y" -o "$yn" = "y" ]; then
      echo "Cleaning Source!"
      export CLEAN=yes
-else
-     echo "Not cleaning source!"
-     export CLEAN=no
-fi
 
 export LOCALVERSION=-RAD-${VERSION}-${DATE}-AOSP
 
@@ -31,14 +26,12 @@ export KERNEL_LLVM_BIN=$(pwd)/toolchain/llvm-arm-toolchain-ship/10.0/bin/clang
 export CLANG_TRIPLE=aarch64-linux-gnu-
 export KERNEL_MAKE_ENV="DTC_EXT=$(pwd)/tools/dtc CONFIG_BUILD_ARM64_DT_OVERLAY=y"
 
-if [ "${CLEAN}" == "yes" ]; then
 	echo "Executing make clean & make mrproper!";
 	BUILD_START=$(date +"%s");
 	rm -rf out;
 	mkdir -p out;
 	make O=out clean && make O=out mrproper;
-  elif [ "${CLEAN}" == "no" ]; then
-	echo "Initiating Dirty build!";
+
 	rm -rf ${KERNELDIR}/out/arch/arm64/boot/Image;
 	rm -rf ${KERNELDIR}/out/arch/arm64/boot/a42xq_eur_open.img;
 	BUILD_START=$(date +"%s");
