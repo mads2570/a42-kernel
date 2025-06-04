@@ -35,10 +35,8 @@ export KERNEL_MAKE_ENV="DTC_EXT=$(pwd)/tools/dtc CONFIG_BUILD_ARM64_DT_OVERLAY=y
 	rm -rf ${KERNELDIR}/out/arch/arm64/boot/Image;
 	rm -rf ${KERNELDIR}/out/arch/arm64/boot/a42xq_eur_open.img;
 	BUILD_START=$(date +"%s");
-	fi;
 	
 echo "-----------------------------------------"	
-
 echo ....................................
 echo ....................................
 echo ...""BUILDING KERNEL "".............
