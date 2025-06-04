@@ -10,14 +10,14 @@ KERNELDIR=$(pwd)
 export USE_CCACHE=1
 export CCACHE_DIR=~/.ccache
 
-export DEFCONFIG=dreamlte-dream2lte;
-export AIK_S8p_PATH=AIK-G955;
+export DEFCONFIG=a42xq_eur_open;
+export AIK_a42xq_PATH=AIK-a42xq;
 	
 export LOCALVERSION=-RAD-${VERSION}-${DATE}
 
 export ARCH=arm64
 export PATH="$(pwd)/clang/bin/:$(pwd)/toolchain/bin:${PATH}"
-export CROSS_COMPILE=$(pwd)/toolchain/bin/aarch64-linux-gnu-
+export CROSS_COMPILE=$(pwd)/toolchain/bin/aarch64-linux-gnu- endor/a42xq_eur_open_defconfig
 
 if [ "${CLEAN}" == "yes" ]; then
 	echo "Executing make clean & make mrproper!";
@@ -35,7 +35,7 @@ echo "-----------------------------------------"
 echo "------------------------------------------------------"
 echo "---                Building Kernel!                ---"
 echo "------------------------------------------------------"
-make O=out exynos8895-${DEFCONFIG}_defconfig && script -q ~/Compile.log -c "
+make O=out exynoa42xq895-${DEFCONFIG}_defconfig && script -q ~/Compile.log -c "
 make O=out CC=clang -j${JOBS}"
 
 if [ ! -e ${KERNELDIR}/RAD/logs ]; then
@@ -50,15 +50,9 @@ if [ -e ${KERNELDIR}/out/arch/arm64/boot/Image ]; then
         echo ""
         echo ""Making Flashable Zip!""
         echo ""
-	rm -rf ${KERNELDIR}/RAD/${AIK_S8_PATH}/split_img/boot.img-dt
-	rm -rf ${KERNELDIR}/RAD/${AIK_S8p_PATH}/split_img/boot.img-dt
-	rm -rf ${KERNELDIR}/RAD/${AIK_N8_PATH}/split_img/boot.img-dt
-	rm -rf ${KERNELDIR}/RAD/${AIK_S8_PATH}/split_img/boot.img-zImage
-	rm -rf ${KERNELDIR}/RAD/${AIK_S8p_PATH}/split_img/boot.img-zImage
-	rm -rf ${KERNELDIR}/RAD/${AIK_N8_PATH}/split_img/boot.img-zImage
-	rm -rf ${KERNELDIR}/RAD/${AIK_S8_PATH}/image-new.img
-	rm -rf ${KERNELDIR}/RAD/${AIK_S8p_PATH}/image-new.img
-	rm -rf ${KERNELDIR}/RAD/${AIK_N8_PATH}/image-new.img
+	rm -rf ${KERNELDIR}/RAD/${AIK_a42xq_PATH}/split_img/boot.img-dt
+	rm -rf ${KERNELDIR}/RAD/${AIK_a42xq_PATH}/split_img/boot.img-zImage
+	rm -rf ${KERNELDIR}/RAD/${AIK_a42xq_PATH}/image-new.img
 else
 	echo ""
 	echo "Kernel didnt build successfully!"
@@ -86,33 +80,19 @@ fi;
 	echo ""
 	echo "Copying zImage & dt.img to AIK dir!"
 	echo ""
-if [ "${DEVICE}" == "S8/S8+" ]; then
-		cp ${KERNELDIR}/out/arch/arm64/boot/Image ${KERNELDIR}/RAD/${AIK_S8_PATH}/split_img/boot.img-zImage;
-		cp ${KERNELDIR}/out/arch/arm64/boot/dtb_dreamlte.img ${KERNELDIR}/RAD/${AIK_S8_PATH}/split_img/boot.img-dt;
-		cp ${KERNELDIR}/out/arch/arm64/boot/Image ${KERNELDIR}/RAD/${AIK_S8p_PATH}/split_img/boot.img-zImage;
-		cp ${KERNELDIR}/out/arch/arm64/boot/dtb_dream2lte.img ${KERNELDIR}/RAD/${AIK_S8p_PATH}/split_img/boot.img-dt;
-	elif [ "${DEVICE}" == "N8" ]; then
-		cp ${KERNELDIR}/out/arch/arm64/boot/Image ${KERNELDIR}/RAD/${AIK_N8_PATH}/split_img/boot.img-zImage;
-		cp ${KERNELDIR}/out/arch/arm64/boot/dtb_greatlte.img ${KERNELDIR}/RAD/${AIK_N8_PATH}/split_img/boot.img-dt;
+if [ "${DEVICE}" == "a42xq" ]; then
+		cp ${KERNELDIR}/out/arch/arm64/boot/Image ${KERNELDIR}/RAD/${AIK_a42xq_PATH}/split_img/boot.img-zImage;
+		cp ${KERNELDIR}/out/arch/arm64/boot/dtb_dreamlte.img ${KERNELDIR}/RAD/${AIK_a42xq_PATH}/split_img/boot.img-dt;
+
 	fi;
 		
 	echo ""
 	echo "Zipping up AIK!"
 	echo ""
-if [ "${DEVICE}" == "S8/S8+" ]; then
-	cd ${KERNELDIR}/RAD/${AIK_S8_PATH}
+if [ "${DEVICE}" == "a42xq" ]; then
+	cd ${KERNELDIR}/RAD/${AIK_a42xq_PATH}
 	bash repackimg.sh
-	mv image-new.img ${KERNELDIR}/RAD/Flashable/boot_G950.img
-	mkdir ${KERNELDIR}/RAD/Releases/${VERSION}
-	cd ${KERNELDIR}
-	cd $(pwd)/RAD/${AIK_S8p_PATH}
-	bash repackimg.sh
-	mv image-new.img ${KERNELDIR}/RAD/Flashable/boot_G955.img
-	cd ${KERNELDIR}/RAD/Flashable && zip -r9 RAD-${VERSION}-${DATE}.zip * -x README.md RAD-${VERSION}-${DATE}.zip/
-	mv RAD-${VERSION}-${DATE}.zip ${KERNELDIR}/RAD/Releases/${VERSION}/RAD-${VERSION}-${DATE}.zip
-    elif [ "${DEVICE}" == "N8" ]; then
-    	cd ${KERNELDIR}/RAD/${AIK_N8_PATH}
-	bash repackimg.sh
+
 	mv image-new.img ${KERNELDIR}/RAD/Flashable/boot_N950.img
 	mkdir ${KERNELDIR}/RAD/Releases/${VERSION}
 	cd ${KERNELDIR}/RAD/Flashable && zip -r9 RAD-${VERSION}-${DATE}.zip * -x README.md RAD-${VERSION}-${DATE}.zip/
