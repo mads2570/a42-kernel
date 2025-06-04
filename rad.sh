@@ -19,7 +19,8 @@ export LOCALVERSION=-RAD-${VERSION}-${DATE}
 
 export ARCH=arm64
 export PATH="$(pwd)/clang/bin/:$(pwd)/toolchain/bin:${PATH}"
-export CROSS_COMPILE=$(pwd)/toolchain/bin/aarch64-linux-gnu- endor/a42xq_eur_open_defconfig
+export CROSS_COMPILE=$(pwd)/toolchain/bin/aarch64-linux-gnu- vendor/a42xq_eur_open_defconfig
+export :CLANG_TRIPLE=aarch64-linux-gnu- vendor/a42xq_eur_open_defconfig
 
 if [ "${CLEAN}" == "yes" ]; then
 	echo "Executing make clean & make mrproper!";
@@ -95,7 +96,7 @@ if [ "${DEVICE}" == "a42xq" ]; then
 	cd ${KERNELDIR}/RAD/${AIK_a42xq_PATH}
 	bash repackimg.sh
 
-	mv image-new.img ${KERNELDIR}/RAD/Flashable/boot_N950.img
+	mv image-new.img ${KERNELDIR}/RAD/Flashable/boot_a42.img
 	mkdir ${KERNELDIR}/RAD/Releases/${VERSION}
 	cd ${KERNELDIR}/RAD/Flashable && zip -r9 RAD-${VERSION}-${DATE}.zip * -x README.md RAD-${VERSION}-${DATE}.zip/
 	mv RAD-${VERSION}-${DATE}.zip ${KERNELDIR}/RAD/Releases/${VERSION}/RAD-${VERSION}-${DATE}.zip
