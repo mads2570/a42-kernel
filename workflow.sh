@@ -8,7 +8,7 @@ DATE=$(date +'%Y%m%d-%H%M')
 JOBS=$(nproc)
 KERNELDIR=$(pwd)
 DEVICE=$1
-VERSION=$2
+VERSION=10
 CLEAN=$3
 
 echo "<${DEVICE}> has been selected!"
