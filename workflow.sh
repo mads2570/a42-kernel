@@ -9,7 +9,7 @@ KERNELDIR=$(pwd)
 export USE_CCACHE=1
 export CCACHE_DIR=~/.ccache
 
-export VERSION=4.9
+export VERSION=4
 export CLEAN=yes
 export DEVICE=a42xq
 
