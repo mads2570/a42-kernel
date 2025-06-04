@@ -9,20 +9,18 @@ KERNELDIR=$(pwd)
 export USE_CCACHE=1
 export CCACHE_DIR=~/.ccache
 
-export VERSION=4
+export VERSION=a42xq
 export CLEAN=yes
 export DEVICE=a42xq
 
-
-read -p "Clean source (y/n) > " yn
      echo "Cleaning Source!"
-     export CLEAN=yes
+export CLEAN=yes
 
 export LOCALVERSION=-RAD-${VERSION}-${DATE}-AOSP
 
 export ARCH=arm64
-export BUILD_CROSS_COMPILE=$(pwd)/toolchain/gcc/linux-x86/aarch64/aarch64-linux-android-4.9/bin/aarch64-linux-android-
-export KERNEL_LLVM_BIN=$(pwd)/toolchain/llvm-arm-toolchain-ship/10.0/bin/clang
+export PATH="$(pwd)/clang/bin/:$(pwd)/toolchain/bin:${PATH}"
+export CROSS_COMPILE=$(pwd)/toolchain/bin/aarch64-linux-gnu-
 export CLANG_TRIPLE=aarch64-linux-gnu-
 export KERNEL_MAKE_ENV="DTC_EXT=$(pwd)/tools/dtc CONFIG_BUILD_ARM64_DT_OVERLAY=y"
 
@@ -35,7 +33,7 @@ export KERNEL_MAKE_ENV="DTC_EXT=$(pwd)/tools/dtc CONFIG_BUILD_ARM64_DT_OVERLAY=y
 	rm -rf ${KERNELDIR}/out/arch/arm64/boot/Image;
 	rm -rf ${KERNELDIR}/out/arch/arm64/boot/a42xq_eur_open.img;
 	BUILD_START=$(date +"%s");
-	fi;
+	
 	
 echo "-----------------------------------------"	
 
@@ -44,17 +42,17 @@ echo ....................................
 echo ...""BUILDING KERNEL "".............
 echo ....................................
 echo ....................................
-make O=$(pwd)/out $KERNEL_MAKE_ENV ARCH=arm64 CROSS_COMPILE=$BUILD_CROSS_COMPILE REAL_CC=$KERNEL_LLVM_BIN CLANG_TRIPLE=$CLANG_TRIPLE vendor/a42xq_eur_open_defconfig
-make O=$(pwd)/out $KERNEL_MAKE_ENV ARCH=arm64 CROSS_COMPILE=$BUILD_CROSS_COMPILE REAL_CC=$KERNEL_LLVM_BIN CLANG_TRIPLE=$CLANG_TRIPLE
- 
+make O=out a42xq-${DEFCONFIG}_defconfig && script -q ~/Compile.log -c "
+make O=out CC=clang -j${JOBS}"
 
 if [ ! -e ${KERNELDIR}/RAD/logs ]; then
 		mkdir ${KERNELDIR}/RAD/logs;
-	fi;
+		
+fi;
 	
-if [ ! -e ${KERNELDIR}/RAD/Releases ]; then
+
 		mkdir ${KERNELDIR}/RAD/Releases;
-	fi;
+		
 	
 if [ -e ${KERNELDIR}/out/arch/arm64/boot/Image ]; then
         echo ""

@@ -9,6 +9,7 @@ JOBS=$(nproc)
 KERNELDIR=$(pwd)
 export USE_CCACHE=1
 export CCACHE_DIR=~/.ccache
+export VERSION=a42xq
 export DEFCONFIG=a42xq_eur_open;
 export AIK_a42xq_PATH=AIK-a42xq;
 export DEFCONFIG=a42xq_eur_open;
@@ -21,25 +22,20 @@ export KERNEL_LLVM_BIN=$(pwd)/toolchain/llvm-arm-toolchain-ship/10.0/bin/clang
 export CLANG_TRIPLE=aarch64-linux-gnu-
 export KERNEL_MAKE_ENV="DTC_EXT=$(pwd)/tools/dtc CONFIG_BUILD_ARM64_DT_OVERLAY=y"
 
-if [ "${CLEAN}" == "yes" ]; then
 	echo "Executing make clean & make mrproper!";
 	BUILD_START=$(date +"%s");
 	rm -rf out;
 	mkdir -p out;
 	make O=out clean && make O=out mrproper;
-  elif [ "${CLEAN}" == "no" ]; then
-	echo "Initiating Dirty build!";
+
 	BUILD_START=$(date +"%s");
-	fi;
 	
 echo "-----------------------------------------"	
-
 echo "------------------------------------------------------"
 echo "---                Building Kernel!                ---"
 echo "------------------------------------------------------"
-make O=$(pwd)/out $KERNEL_MAKE_ENV ARCH=arm64 CROSS_COMPILE=$BUILD_CROSS_COMPILE REAL_CC=$KERNEL_LLVM_BIN CLANG_TRIPLE=$CLANG_TRIPLE vendor/a42xq_eur_open_defconfig
-make O=$(pwd)/out $KERNEL_MAKE_ENV ARCH=arm64 CROSS_COMPILE=$BUILD_CROSS_COMPILE REAL_CC=$KERNEL_LLVM_BIN CLANG_TRIPLE=$CLANG_TRIPLE
- 
+    make O=out a42xq_eur_open-${DEFCONFIG}_defconfig && script -q ~/Compile.log -c "
+    make O=out CC=clang -j${JOBS}"
 if [ ! -e ${KERNELDIR}/RAD/logs ]; then
 		mkdir ${KERNELDIR}/RAD/logs;
 	fi;
