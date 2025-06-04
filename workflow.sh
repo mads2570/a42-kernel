@@ -3,37 +3,6 @@
 echo "------------------------------------------------------"
 echo "---             RAD-KERNEL-BUILD-SCRIPT            ---"
 echo "------------------------------------------------------"
-
-DATE=$(date +'%Y%m%d-%H%M')
-JOBS=$(nproc)
-KERNELDIR=$(pwd)
-DEVICE=$1
-VERSION=10
-CLEAN=$3
-
-echo "<${DEVICE}> has been selected!"
-
-if [ "${DEVICE}" == "a42" ]; then
-		export DEFCONFIG=a42xq_eur_open_defconfig;
-		export AK3_a42_PATH=ak3-a42;
-	
-	fi;
-	
-echo "-----------------------------------------"
-
-read -p "Type version number > " vr
-export VERSION=$vr
-if [ "$vr" = "" -o "$vr" = "exit" ]; then
-     echo ""
-     echo "No version selected!"
-     echo "Exiting now!"
-     echo ""
-     exit 0
-else
-     echo ""
-     echo "<${VERSION}> version number has been set!"
-     echo ""
-fi;
 	
 read -p "Clean source (y/n) > " yn
 if [ "$yn" = "Y" -o "$yn" = "y" ]; then
@@ -47,8 +16,10 @@ fi
 export LOCALVERSION=-RAD-${VERSION}-${DATE}-AOSP
 
 export ARCH=arm64
-export PATH="$(pwd)/clang/bin/:$(pwd)/toolchain/bin:${PATH}"
-export CROSS_COMPILE=$(pwd)/toolchain/bin/aarch64-linux-gnu-
+export BUILD_CROSS_COMPILE=$(pwd)/toolchain/gcc/linux-x86/aarch64/aarch64-linux-android-4.9/bin/aarch64-linux-android-
+export KERNEL_LLVM_BIN=$(pwd)/toolchain/llvm-arm-toolchain-ship/10.0/bin/clang
+export CLANG_TRIPLE=aarch64-linux-gnu-
+export KERNEL_MAKE_ENV="DTC_EXT=$(pwd)/tools/dtc CONFIG_BUILD_ARM64_DT_OVERLAY=y"
 
 if [ "${CLEAN}" == "yes" ]; then
 	echo "Executing make clean & make mrproper!";
@@ -70,8 +41,9 @@ echo ....................................
 echo ...""BUILDING KERNEL "".............
 echo ....................................
 echo ....................................
-make O=out KERNEL_MAKE_ENV-${DEFCONFIG}_defconfig && script -q ~/Compile.log -c "
-make O=out CC=clang -j${JOBS}"
+make O=$(pwd)/out $KERNEL_MAKE_ENV ARCH=arm64 CROSS_COMPILE=$BUILD_CROSS_COMPILE REAL_CC=$KERNEL_LLVM_BIN CLANG_TRIPLE=$CLANG_TRIPLE vendor/a42xq_eur_open_defconfig
+make O=$(pwd)/out $KERNEL_MAKE_ENV ARCH=arm64 CROSS_COMPILE=$BUILD_CROSS_COMPILE REAL_CC=$KERNEL_LLVM_BIN CLANG_TRIPLE=$CLANG_TRIPLE
+ 
 
 if [ ! -e ${KERNELDIR}/RAD/logs ]; then
 		mkdir ${KERNELDIR}/RAD/logs;
