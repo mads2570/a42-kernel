@@ -53,7 +53,7 @@ jobs:
         if: steps.cache-aosp-clang.outputs.cache-hit != 'true'
         run: |
           git clone https://github.com/SN-Abdullah-Al-Noman/llvm-arm-toolchain-ship-10.0.git -b main
-          git clone https://github.com/SN-Abdullah-Al-Noman/llvm-arm-toolchain-ship-10.0.git -b android12L-release
+          git clone https://github.com/JackA1ltman/Google-GCC-Android-4.9.git -b aarch64
           
       - name: Checkout Anykernel
         uses: actions/checkout@v4
@@ -85,8 +85,8 @@ jobs:
           export PATH="/usr/lib/ccache:$PATH"
           echo "date=$date" >> $GITHUB_ENV
           echo "Building kernel with $args"  
-          make -C $(pwd) O=out $KERNEL_MAKE_ENV CC="ccache clang" LLVM=1 LLVM_IAS=1 vendor/m23xq_eur_open_defconfig && make O=out $KERNEL_MAKE_ENV CC="ccache clang" LLVM=1 LLVM_IAS=1 -j$(grep -c ^processor /proc/cpuinfo)
-          $GITHUB_WORKSPACE/kernel-source//tools/mkdtimg create $GITHUB_WORKSPACE/kernel-source/out/arch/arm64/boot/dtbo.img --page_size=4096 $(find out/arch/arm64/boot/dts/samsung/m23/m23xq/ -name *.dtbo)
+          make -C $(pwd) O=out $KERNEL_MAKE_ENV CC="ccache clang" LLVM=1 LLVM_IAS=1 vendor/a42xq_eur_open_defconfig && make O=out $KERNEL_MAKE_ENV CC="ccache clang" LLVM=1 LLVM_IAS=1 -j$(grep -c ^processor /proc/cpuinfo)
+          $GITHUB_WORKSPACE/kernel-source//tools/mkdtimg create $GITHUB_WORKSPACE/kernel-source/out/arch/arm64/boot/dtbo.img --page_size=4096 $(find out/arch/arm64/boot/dts/samsung/a42/a42xq/ -name *.dtbo)
           
       - name: Prepare Anykernel
         working-directory: anykernel
