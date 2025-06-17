@@ -1,0 +1,204 @@
+name: Build Kernel
+
+on:
+  workflow_dispatch:
+    inputs:
+      BRANCH:
+        description: Kernel branch
+        default: 'main'
+        required: true
+      ROOT_IMPL:
+       description: Select KSU
+       required: true
+       default: 'kernelsu-next'
+       type: choice
+       options:
+         - kernelsu-next
+         - sukisu
+      AK3_NAME:
+        description: Enter custom name for AnyKernel3 artifact
+        required: true
+      UPLOAD_TO_TG:
+        description: Upload to Telegram
+        type: boolean
+      UPLOAD_TO_GH:
+        description: Upload to GitHub Release
+        type: boolean
+      CHANGELOG:
+        description: Enter changelog
+        required: true
+        default: 'No changelog provided'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Kernel Source
+        uses: actions/checkout@v4
+        with:
+          repository: mads2570/a42-kernel
+          path: kernel_root
+          ref: ${{ github.event.inputs.BRANCH }}
+          show-progress: false
+          fetch-depth: 0
+
+      - name: Prepare dependencies + fetch tags
+        run: |
+          sudo apt update -y
+          sudo apt install bc cpio flex bison aptitude git python-is-python3 tar perl wget curl lz4 -y
+          sudo aptitude install libssl-dev -y
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          git fetch --tags --force
+        working-directory: kernel_root
+
+      - name: Fetch toolchains (Clang 11 + GCC 4.9)
+        run: |
+          mkdir toolchains && cd toolchains
+          git clone --depth=1 -b clang-11 https://github.com/rsuntk/toolchains.git clang
+          git clone --depth=1 -b androidcc-4.9 https://github.com/rsuntk/toolchains.git google
+        working-directory: kernel_root
+
+      - name: Set timezone (Asia/Kolkata)
+        run: |
+          sudo rm /etc/localtime
+          sudo ln -s /usr/share/zoneinfo/Asia/Kolkata /etc/localtime
+
+      - name: Clone input ksu
+        run: |
+          case "${{ github.event.inputs.ROOT_IMPL }}" in
+          kernelsu-next)
+          curl -LSs "https://raw.githubusercontent.com/rifsxd/KernelSU-Next/next-susfs/kernel/setup.sh" | bash -s next-susfs
+          ;;
+          sukisu)
+          curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kernel/setup.sh" | bash -s susfs-dev
+          ;;
+          esac
+        working-directory: kernel_root
+
+      - name: Build kernel
+        id: buildKernel
+        run: |
+          export PATH=$(pwd)/toolchains/clang/bin:$PATH
+          export CROSS_COMPILE=$(pwd)/toolchains/google/bin/aarch64-linux-android-
+          export CLANG_TRIPLE=aarch64-linux-gnu-
+          export KBUILD_BUILD_USER="mads"
+          export KBUILD_BUILD_HOST="github"
+          export BUILD_START=`date`
+          export IS_CI=true
+
+          export DEFCONFIG="a42xq_eur_open_defconfig"
+          export DEVICE_ID="A42"
+
+          bash $(pwd)/build_kernel.sh kernel --jobs $(nproc --all) $DEFCONFIG
+        
+          echo -e "Localversion: $(./scripts/setlocalversion)\n\nClang version: $(clang -v 2>&1 | grep ' version ' | sed 's/[[:space:]]*$//')\n\nBuild: $BUILD_START\n\nDefconfig: $DEFCONFIG\n\nChangelog: ${{ github.event.inputs.CHANGELOG }}" > buildDetails.txt
+
+ 
+          echo "TITLE=Galaxy `echo $DEVICE_ID` Kernel" >> $GITHUB_ENV
+
+          mv .config build_config.txt
+          gitsha1=$(git rev-parse --short HEAD)
+          buildDetails="`make kernelversion`-`echo $DEVICE`_`echo $gitsha1`-`date +'%Y%m%d%H%M%S'`" && echo "buildDetails=$buildDetails" >> $GITHUB_OUTPUT
+        working-directory: kernel_root   
+
+      - name: Upload config
+        uses: actions/upload-artifact@v4
+        with:
+         name: Config-${{ steps.buildKernel.outputs.buildDetails }}
+         path: kernel_root/build_config.txt
+
+      - name: Upload kernel images
+        uses: actions/upload-artifact@v4
+        with:
+          name: Kernel-${{ steps.buildKernel.outputs.buildDetails }}
+          path: |
+            kernel_root/arch/arm64/boot/Image.gz
+            kernel_root/arch/arm64/boot/dts/exynos/*.dtb
+            kernel_root/arch/arm64/boot/dts/samsung/*.dtb
+
+      - name: Copy Image to AnyKernel3
+        run: |
+          cp kernel_root/arch/arm64/boot/Image kernel_root/anykernel3/
+
+      - name: Upload AnyKernel3
+        uses: actions/upload-artifact@v4
+        with:
+          name: AnyKernel3-${{ github.event.inputs.AK3_NAME }}
+          path: kernel_root/anykernel3/*
+          compression-level: 9
+
+      - name: Download AnyKernel3 artifact
+        if: ${{ github.event.inputs.UPLOAD_TO_TG == 'true' }}
+        uses: actions/download-artifact@v4
+        with:
+          name: AnyKernel3-${{ github.event.inputs.AK3_NAME }}
+          path: ak3_upload
+
+      - name: Create AnyKernel3 ZIP 
+        run: |
+          cd kernel_root/anykernel3
+          zip -r9 "AnyKernel3-${{ github.event.inputs.AK3_NAME }}.zip" ./*
+          ls -lh "AnyKernel3-${{ github.event.inputs.AK3_NAME }}.zip"
+          
+      - name: Upload to Telegram
+        if: github.event.inputs.UPLOAD_TO_TG == 'true'
+        env:
+          CHAT_ID: ${{ secrets.CHAT_ID }}
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+        run: |
+          if [ ! -z "${{ secrets.BOT_TOKEN }}" ]; then   
+          ZIP="./anykernel3/AnyKernel3-${{ github.event.inputs.AK3_NAME }}.zip"
+          cat buildDetails.txt
+          git clone https://github.com/maazm7d/builder.git --depth=1 i && cp ./i/xedbot.sh . && rm -rf i
+          bash $(pwd)/xedbot.sh "$ZIP" "`cat buildDetails.txt`"
+          fi
+        working-directory: kernel_root
+
+      - name: Generate changelog
+        id: changelog
+        run: |
+          set -e
+          latest_tag=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          if [ -z "$latest_tag" ]; then
+          echo "No previous tag found. Using full commit history."
+          changelog=$(git log --pretty=format:"- %s (%an)" --no-merges)
+          else
+          echo "Found last tag: $latest_tag"
+          changelog=$(git log "${latest_tag}..HEAD" --pretty=format:"- %s (%an)" --no-merges)
+          fi
+
+                # Save changelog to output
+          echo "changelog<<EOF" >> "$GITHUB_OUTPUT"
+          echo "$changelog" >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
+        working-directory: kernel_root
+
+      - name: Generate tag name
+        id: tag
+        run: |
+          TAG_NAME="build-$(date +'%Y%m%d')-$(git rev-parse --short HEAD)"
+          echo "tag_name=$TAG_NAME" >> "$GITHUB_OUTPUT"
+        working-directory: kernel_root
+
+      - name: Upload to GitHub Release
+        if: github.event.inputs.UPLOAD_TO_GH == 'true'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.tag.outputs.tag_name }}
+          name: "${{ steps.tag.outputs.tag_name }}"
+          body: ${{ steps.changelog.outputs.changelog }}
+          files: kernel_root/anykernel3/AnyKernel3-${{ github.event.inputs.AK3_NAME }}.zip
+          repository: maazm7d/kernel_samsung_a12
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_PAT }}
+        
+
+
+
+
+        
+
+        
+
+      
