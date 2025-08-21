@@ -1,0 +1,22 @@
+version: 2.1
+jobs:
+  compile:
+   docker:
+      - image: ubuntu:20.04
+   steps:
+      - run:
+          command: |
+           apt-get -y update && apt-get -y upgrade && apt-get -y install bc build-essential zip curl libstdc++6 git wget gcc clang libssl-dev rsync flex bison cpio libncurses5 curl 
+           git config --global user.name "mads2570"
+           git config --global user.email "qwerty2570@live.com"
+           git config --global color.ui false
+           git clone https://github.com/akhilnarang/scripts && cd scripts && bash setup/android_build_env.sh && cd ..
+           mkdir predator
+           cd predator
+           wget https://github.com/mads2570/a42-kernel/blob/circleci-project-setup/build_menu
+           source build_menu
+workflows:
+  version: 2.1
+  cooking:
+    jobs:
+      - compile
