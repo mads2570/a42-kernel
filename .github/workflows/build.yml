@@ -31,7 +31,7 @@ jobs:
         image: Image.gz
         dtb: false
         dtbo: false
-        kernelsu: true
+        kernelsu: false
         kprobes: false
 
     - name: Release build
