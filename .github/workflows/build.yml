@@ -11,10 +11,10 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
     - name: Checkout kernel source
-      uses: actions/checkout@v2
+      uses: actions/checkout@v0.4.0
 
     - name: Checkout zipper
-      uses: actions/checkout@v2
+      uses: actions/checkout@v0.4.0
       with:
         repository: lemniskett/AnyKernel3
         path: zipper
@@ -26,7 +26,7 @@ jobs:
         NAME: Dark-Ages
       with:
         arch: arm64
-        compiler: proton-clang/master
+        compiler: gcc/4.9
         defconfig: vendor/a42xq_eur_open_defconfig
         image: Image.gz
         dtb: false
